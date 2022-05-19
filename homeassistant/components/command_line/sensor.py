@@ -26,11 +26,17 @@ from homeassistant.helpers.template import Template
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import check_output_or_log
-from .const import CONF_COMMAND_TIMEOUT, DEFAULT_TIMEOUT, DOMAIN, PLATFORMS
+from .const import (
+    ATTR_RAW,
+    CONF_COMMAND_TIMEOUT,
+    CONF_JSON_ATTRIBUTES,
+    CONF_RAW_ATTR,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    PLATFORMS,
+)
 
 _LOGGER = logging.getLogger(__name__)
-
-CONF_JSON_ATTRIBUTES = "json_attributes"
 
 DEFAULT_NAME = "Command Sensor"
 
@@ -41,6 +47,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_COMMAND): cv.string,
         vol.Optional(CONF_COMMAND_TIMEOUT, default=DEFAULT_TIMEOUT): cv.positive_int,
         vol.Optional(CONF_JSON_ATTRIBUTES): cv.ensure_list_csv,
+        vol.Optional(CONF_RAW_ATTR, default=False): cv.boolean,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
         vol.Optional(CONF_VALUE_TEMPLATE): cv.template,
@@ -68,10 +75,15 @@ def setup_platform(
     if value_template is not None:
         value_template.hass = hass
     json_attributes: list[str] | None = config.get(CONF_JSON_ATTRIBUTES)
+    raw_attr: bool | None = config.get(CONF_RAW_ATTR)
     data = CommandSensorData(hass, command, command_timeout)
 
     add_entities(
-        [CommandSensor(data, name, unit, value_template, json_attributes, unique_id)],
+        [
+            CommandSensor(
+                data, name, unit, value_template, json_attributes, raw_attr, unique_id
+            )
+        ],
         True,
     )
 
@@ -86,12 +98,14 @@ class CommandSensor(SensorEntity):
         unit_of_measurement: str | None,
         value_template: Template | None,
         json_attributes: list[str] | None,
+        raw_attribute: bool | None,
         unique_id: str | None,
     ) -> None:
         """Initialize the sensor."""
         self.data = data
         self._attr_extra_state_attributes = {}
         self._json_attributes = json_attributes
+        self._raw_attr = raw_attribute
         self._attr_name = name
         self._attr_native_value = None
         self._attr_native_unit_of_measurement = unit_of_measurement
@@ -120,6 +134,17 @@ class CommandSensor(SensorEntity):
                     _LOGGER.warning("Unable to parse output as JSON: %s", value)
             else:
                 _LOGGER.warning("Empty reply found when expecting JSON data")
+
+        if self._raw_attr:
+            if value:
+                try:
+                    json_dict = json.loads(value)
+                    self._attr_extra_state_attributes[ATTR_RAW] = json_dict
+                except ValueError:
+                    _LOGGER.warning("Unable to parse output as JSON: %s", value)
+                    self._attr_extra_state_attributes[ATTR_RAW] = value
+            else:
+                self._attr_extra_state_attributes[ATTR_RAW] = None
 
         if value is None:
             value = STATE_UNKNOWN

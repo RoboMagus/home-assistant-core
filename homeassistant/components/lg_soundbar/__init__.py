@@ -8,6 +8,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 
 from .config_flow import test_connect
 from .const import DOMAIN
+from .coordinator import LGSoundbarConfigEntry, LGSoundbarCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ PLATFORMS = [Platform.MEDIA_PLAYER]
 
 
 async def async_setup_entry(
-    hass: core.HomeAssistant, entry: config_entries.ConfigEntry
+    hass: core.HomeAssistant, entry: LGSoundbarConfigEntry
 ) -> bool:
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
@@ -26,6 +27,10 @@ async def async_setup_entry(
         )
     except ConnectionError as err:
         raise ConfigEntryNotReady from err
+
+    coordinator = LGSoundbarCoordinator(hass, entry)
+    await coordinator.async_config_entry_first_refresh()
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

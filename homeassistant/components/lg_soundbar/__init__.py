@@ -12,7 +12,7 @@ from .coordinator import LGSoundbarConfigEntry, LGSoundbarCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.MEDIA_PLAYER]
+PLATFORMS = [Platform.MEDIA_PLAYER, Platform.SWITCH]
 
 
 async def async_setup_entry(

@@ -20,6 +20,8 @@ class LGSoundbarData:
     """LG Soundbar data."""
 
     powerstatus: bool = False
+    auto_volume: bool = False
+    night_mode: bool = False
     volume: int = 0
     volume_min: int = 0
     volume_max: int = 0
@@ -59,6 +61,7 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
         self.device = None
 
         self.device_name = None
+        self.settings_list = []
         self.data = LGSoundbarData()  # Default initialize
 
     async def _async_setup(self) -> None:
@@ -118,6 +121,11 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
             if "ai_func_list" in data:
                 current_state.functions = data["ai_func_list"]
         elif response["msg"] == "SETTING_VIEW_INFO":
+            self.settings_list = data.keys()
+            if "b_auto_vol" in data:
+                current_state.auto_volume = data["b_auto_vol"]
+            if "b_night_time" in data:
+                current_state.night_mode = data["b_night_time"]
             if "i_rear_min" in data:
                 current_state.rear_volume_min = data["i_rear_min"]
             if "i_rear_max" in data:
@@ -142,4 +150,10 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
         """Set the media player state."""
         self.device.send_packet(
             {"cmd": "set", "data": {"b_powerkey": status}, "msg": "SPK_LIST_VIEW_INFO"}
+        )
+
+    def set_night_mode(self, enable: bool) -> None:
+        """Enable / Disable night mode."""
+        self.device.send_packet(
+            {"cmd": "set", "data": {"b_night_time": enable}, "msg": "SETTING_VIEW_INFO"}
         )

@@ -22,6 +22,7 @@ class LGSoundbarData:
     powerstatus: bool = False
     auto_volume: bool = False
     night_mode: bool = False
+    back_light: int = 0
     volume: int = 0
     volume_min: int = 0
     volume_max: int = 0
@@ -140,6 +141,8 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 current_state.woofer_volume = data["i_woofer_level"]
             if "i_curr_eq" in data:
                 current_state.equaliser = data["i_curr_eq"]
+            if "i_back_light" in data:
+                current_state.back_light = data["i_back_light"]
             if "s_user_name" in data:
                 self.device_name = data["s_user_name"]
 
@@ -156,4 +159,10 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
         """Enable / Disable night mode."""
         self.device.send_packet(
             {"cmd": "set", "data": {"b_night_time": enable}, "msg": "SETTING_VIEW_INFO"}
+        )
+
+    def set_back_light(self, value: int) -> None:
+        """Set backlight mode."""
+        self.device.send_packet(
+            {"cmd": "set", "data": {"i_back_light": value}, "msg": "SETTING_VIEW_INFO"}
         )

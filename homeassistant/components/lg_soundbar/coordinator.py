@@ -31,9 +31,15 @@ class LGSoundbarData:
     equaliser: int = -1
     equalisers: list = field(default_factory=list)
     mute: bool = False
+    center_volume: int = 0
+    center_volume_min: int = 0
+    center_volume_max: int = 0
     rear_volume: int = 0
     rear_volume_min: int = 0
     rear_volume_max: int = 0
+    top_volume: int = 0
+    top_volume_min: int = 0
+    top_volume_max: int = 0
     woofer_volume: int = 0
     woofer_volume_min: int = 0
     woofer_volume_max: int = 0
@@ -127,12 +133,24 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 current_state.auto_volume = data["b_auto_vol"]
             if "b_night_time" in data:
                 current_state.night_mode = data["b_night_time"]
+            if "i_center_min" in data:
+                current_state.center_volume_min = data["i_center_min"]
+            if "i_center_max" in data:
+                current_state.center_volume_max = data["i_center_max"]
+            if "i_center_level" in data:
+                current_state.center_volume = data["i_center_level"]
             if "i_rear_min" in data:
                 current_state.rear_volume_min = data["i_rear_min"]
             if "i_rear_max" in data:
                 current_state.rear_volume_max = data["i_rear_max"]
             if "i_rear_level" in data:
                 current_state.rear_volume = data["i_rear_level"]
+            if "i_top_min" in data:
+                current_state.top_volume_min = data["i_top_min"]
+            if "i_top_max" in data:
+                current_state.top_volume_max = data["i_top_max"]
+            if "i_top_level" in data:
+                current_state.top_volume = data["i_top_level"]
             if "i_woofer_min" in data:
                 current_state.woofer_volume_min = data["i_woofer_min"]
             if "i_woofer_max" in data:
@@ -165,4 +183,16 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
         """Set backlight mode."""
         self.device.send_packet(
             {"cmd": "set", "data": {"i_back_light": value}, "msg": "SETTING_VIEW_INFO"}
+        )
+
+    def set_bass_level(self, value: int) -> None:
+        """Set bass level."""
+        self.device.send_packet(
+            {"cmd": "set", "data": {"i_bass": value}, "msg": "EQ_VIEW_INFO"}
+        )
+
+    def set_treble_level(self, value: int) -> None:
+        """Set treble level."""
+        self.device.send_packet(
+            {"cmd": "set", "data": {"i_treble": value}, "msg": "EQ_VIEW_INFO"}
         )

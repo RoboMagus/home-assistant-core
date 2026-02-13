@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -27,11 +28,13 @@ LGSOUNDBAR_SWITCHES: tuple[LGSoundbarSwitchEntityDescription, ...] = (
     LGSoundbarSwitchEntityDescription(
         key="auto_volume",
         name="auto volume",
+        entity_category=EntityCategory.CONFIG,
         set_fn=lambda coordinator, on: coordinator.device.set_avc(on),
     ),
     LGSoundbarSwitchEntityDescription(
         key="night_mode",
         name="night mode",
+        entity_category=EntityCategory.CONFIG,
         set_fn=lambda coordinator, on: coordinator.set_night_mode(on),
     ),
 )

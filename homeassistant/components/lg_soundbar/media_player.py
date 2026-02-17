@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import temescal
-
 from homeassistant.components.media_player import (
     MediaPlayerEntity,
     MediaPlayerEntityFeature,
@@ -70,40 +68,22 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
     @property
     def sound_mode(self) -> str | None:
         """Return the current sound mode."""
-        if (
-            self.coordinator.data.equaliser == -1
-            or self.coordinator.data.equaliser >= len(temescal.equalisers)
-        ):
-            return None
-        return temescal.equalisers[self.coordinator.data.equaliser]
+        return self.coordinator.data.sound_mode
 
     @property
     def sound_mode_list(self) -> list[str] | None:
         """Return the available sound modes."""
-        return sorted(
-            temescal.equalisers[equaliser]
-            for equaliser in self.coordinator.data.equalisers
-            if equaliser < len(temescal.equalisers)
-        )
+        return self.coordinator.data.sound_mode_list
 
     @property
     def source(self) -> str | None:
         """Return the current input source."""
-        if (
-            self.coordinator.data.function == -1
-            or self.coordinator.data.function >= len(temescal.functions)
-        ):
-            return None
-        return temescal.functions[self.coordinator.data.function]
+        return self.coordinator.data.source
 
     @property
     def source_list(self) -> list[str] | None:
         """List of available input sources."""
-        return sorted(
-            temescal.functions[function]
-            for function in self.coordinator.data.functions
-            if function < len(temescal.functions)
-        )
+        return self.coordinator.data.source_list
 
     def set_volume_level(self, volume: float) -> None:
         """Set volume level, range 0..1."""

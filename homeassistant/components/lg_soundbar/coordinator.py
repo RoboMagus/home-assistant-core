@@ -46,9 +46,37 @@ class LGSoundbarData:
     bass: int = 0
     treble: int = 0
 
+    # processed values
+    sound_mode: str|None = None
+    sound_mode_list: list = field(default_factory=list)
+    source: str|None = None
+    source_list: list = field(default_factory=list)
 
 type LGSoundbarConfigEntry = ConfigEntry[LGSoundbarCoordinator]
 
+def get_sound_mode_from_equaliser(equaliser: int) -> str | None:
+    if 0 <= equaliser < len(temescal.equalisers):
+        return temescal.equalisers[equaliser]
+    return None
+
+def get_sound_mode_list_from_equalisers(equalisers) -> list[str]:
+    return sorted(
+        temescal.equalisers[equaliser]
+        for equaliser in equalisers
+        if equaliser < len(temescal.equalisers)
+    )
+
+def get_source_from_function(function: int) -> str | None:
+    if 0 <= function < len(temescal.functions):
+        return temescal.functions[function]
+    return None
+
+def get_source_list_from_functions(functions: list) -> list[str]:
+    return sorted(
+        temescal.functions[function]
+        for function in functions
+        if function < len(temescal.functions)
+    )
 
 class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
     """Coordinator to handle data updates LG Soundbar entities."""
@@ -107,8 +135,10 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 current_state.treble = data["i_treble"]
             if "ai_eq_list" in data:
                 current_state.equalisers = data["ai_eq_list"]
+                current_state.sound_mode_list = get_sound_mode_list_from_equalisers(current_state.equalisers)
             if "i_curr_eq" in data:
                 current_state.equaliser = data["i_curr_eq"]
+                current_state.sound_mode = get_sound_mode_from_equaliser(current_state.equaliser)
         elif response["msg"] == "SPK_LIST_VIEW_INFO":
             if "i_vol" in data:
                 current_state.volume = data["i_vol"]
@@ -120,13 +150,16 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 current_state.mute = data["b_mute"]
             if "i_curr_func" in data:
                 current_state.function = data["i_curr_func"]
+                current_state.source = get_source_from_function(current_state.function)
             if "b_powerstatus" in data:
                 current_state.powerstatus = data["b_powerstatus"]
         elif response["msg"] == "FUNC_VIEW_INFO":
             if "i_curr_func" in data:
                 current_state.function = data["i_curr_func"]
+                current_state.source = get_source_from_function(current_state.function)
             if "ai_func_list" in data:
                 current_state.functions = data["ai_func_list"]
+                current_state.source_list = get_source_list_from_functions(current_state.functions)
         elif response["msg"] == "SETTING_VIEW_INFO":
             self.settings_list = data.keys()
             if "b_auto_vol" in data:
@@ -159,6 +192,7 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 current_state.woofer_volume = data["i_woofer_level"]
             if "i_curr_eq" in data:
                 current_state.equaliser = data["i_curr_eq"]
+                current_state.sound_mode = get_sound_mode_from_equaliser(current_state.equaliser)
             if "i_back_light" in data:
                 current_state.back_light = data["i_back_light"]
             if "s_user_name" in data:

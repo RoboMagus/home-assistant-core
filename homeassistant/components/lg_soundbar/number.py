@@ -52,7 +52,7 @@ LGSOUNDBAR_NUMBERS: tuple[LGSoundbarNumberEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         native_step=1,
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
-        set_fn=lambda coordinator, value: coordinator.device.set_center_level(value),
+        set_fn=lambda coordinator, value: coordinator.set_center_level(value),
     ),
     LGSoundbarNumberEntityDescription(
         key="rear_volume",
@@ -60,7 +60,7 @@ LGSOUNDBAR_NUMBERS: tuple[LGSoundbarNumberEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         native_step=1,
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
-        set_fn=lambda coordinator, value: coordinator.device.set_rear_level(value),
+        set_fn=lambda coordinator, value: coordinator.set_rear_level(value),
     ),
     LGSoundbarNumberEntityDescription(
         key="top_volume",
@@ -68,7 +68,7 @@ LGSOUNDBAR_NUMBERS: tuple[LGSoundbarNumberEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         native_step=1,
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
-        set_fn=lambda coordinator, value: coordinator.device.set_top_level(value),
+        set_fn=lambda coordinator, value: coordinator.set_top_level(value),
     ),
     LGSoundbarNumberEntityDescription(
         key="woofer_volume",
@@ -76,7 +76,7 @@ LGSOUNDBAR_NUMBERS: tuple[LGSoundbarNumberEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         native_step=1,
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
-        set_fn=lambda coordinator, value: coordinator.device.set_woofer_level(value),
+        set_fn=lambda coordinator, value: coordinator.set_woofer_level(value),
     ),
 )
 

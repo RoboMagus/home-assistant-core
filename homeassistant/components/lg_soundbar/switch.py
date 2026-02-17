@@ -29,7 +29,7 @@ LGSOUNDBAR_SWITCHES: tuple[LGSoundbarSwitchEntityDescription, ...] = (
         key="auto_volume",
         name="auto volume",
         entity_category=EntityCategory.CONFIG,
-        set_fn=lambda coordinator, on: coordinator.device.set_avc(on),
+        set_fn=lambda coordinator, on: coordinator.set_auto_volume(on),
     ),
     LGSoundbarSwitchEntityDescription(
         key="night_mode",

@@ -107,20 +107,19 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
 
     def set_volume_level(self, volume: float) -> None:
         """Set volume level, range 0..1."""
-        volume = volume * self.coordinator.data.volume_max
-        self.coordinator.device.set_volume(int(volume))
+        self.coordinator.set_volume(volume)
 
     def mute_volume(self, mute: bool) -> None:
         """Mute (true) or unmute (false) media player."""
-        self.coordinator.device.set_mute(mute)
+        self.coordinator.set_mute(mute)
 
     def select_source(self, source: str) -> None:
         """Select input source."""
-        self.coordinator.device.set_func(temescal.functions.index(source))
+        self.coordinator.set_source(source)
 
     def select_sound_mode(self, sound_mode: str) -> None:
         """Set Sound Mode for Receiver.."""
-        self.coordinator.device.set_eq(temescal.equalisers.index(sound_mode))
+        self.coordinator.set_sound_mode(sound_mode)
 
     def turn_on(self) -> None:
         """Turn the media player on."""

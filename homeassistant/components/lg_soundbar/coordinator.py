@@ -65,21 +65,21 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
             config_entry=config_entry,
             name=f"{DOMAIN}_{config_entry.unique_id}",
         )
-        self.device = None
 
+        self._device = None
         self.device_name = None
         self.settings_list = []
         self.data = LGSoundbarData()  # Default initialize
 
     async def _async_setup(self) -> None:
         """Set up device communication."""
-        self.device = temescal.temescal(
+        self._device = temescal.temescal(
             address=self.config_entry.data[CONF_HOST],
             port=self.config_entry.data[CONF_PORT],
             callback=self.handle_temescal_event,
         )
-        self.device.get_product_info()
-        self.device.get_mac_info()
+        self._device.get_product_info()
+        self._device.get_mac_info()
         self.temescal_update()
 
     async def _async_update_data(self) -> LGSoundbarData:
@@ -90,10 +90,10 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
     def temescal_update(self) -> None:
         """Trigger updates from the device."""
         LOGGER.debug("temescal_update()")
-        self.device.get_eq()
-        self.device.get_info()
-        self.device.get_func()
-        self.device.get_settings()
+        self._device.get_eq()
+        self._device.get_info()
+        self._device.get_func()
+        self._device.get_settings()
 
     def handle_temescal_event(self, response) -> None:
         """Handle responses from the speakers."""
@@ -169,30 +169,67 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
 
     def set_power(self, status: bool) -> None:
         """Set the media player state."""
-        self.device.send_packet(
+        self._device.send_packet(
             {"cmd": "set", "data": {"b_powerkey": status}, "msg": "SPK_LIST_VIEW_INFO"}
         )
 
+    def set_source(self, source: str) -> None:
+        """Set input source."""
+        self._device.set_func(temescal.functions.index(source))
+
+    def set_sound_mode(self, sound_mode: str) -> None:
+        """Set sound mode."""
+        self._device.set_eq(temescal.equalisers.index(sound_mode))
+
     def set_night_mode(self, enable: bool) -> None:
         """Enable / Disable night mode."""
-        self.device.send_packet(
+        self._device.send_packet(
             {"cmd": "set", "data": {"b_night_time": enable}, "msg": "SETTING_VIEW_INFO"}
         )
 
+    def set_mute(self, mute: bool) -> None:
+        """Mute / Unmute."""
+        self._device.set_mute(mute),
+
     def set_back_light(self, value: int) -> None:
         """Set backlight mode."""
-        self.device.send_packet(
+        self._device.send_packet(
             {"cmd": "set", "data": {"i_back_light": value}, "msg": "SETTING_VIEW_INFO"}
         )
 
+    def set_auto_volume(self, enable: bool) -> None:
+        """Enable / Disable auto volume."""
+        self._device.set_avc(enable)
+
+    def set_volume(self, volume: float) -> None:
+        """Set volume level, range 0..1."""
+        volume = volume * self.data.volume_max
+        self._device.set_volume(int(volume))
+
     def set_bass_level(self, value: int) -> None:
         """Set bass level."""
-        self.device.send_packet(
+        self._device.send_packet(
             {"cmd": "set", "data": {"i_bass": value}, "msg": "EQ_VIEW_INFO"}
         )
 
     def set_treble_level(self, value: int) -> None:
         """Set treble level."""
-        self.device.send_packet(
+        self._device.send_packet(
             {"cmd": "set", "data": {"i_treble": value}, "msg": "EQ_VIEW_INFO"}
         )
+
+    def set_center_level(self, value: int) -> None:
+        """Set center level."""
+        self._device.set_center_level(value)
+
+    def set_rear_level(self, value: int) -> None:
+        """Set rear level."""
+        self._device.set_rear_level(value)
+
+    def set_top_level(self, value: int) -> None:
+        """Set top level."""
+        self._device.set_top_level(value)
+
+    def set_woofer_level(self, value: int) -> None:
+        """Set woofer level."""
+        self._device.set_woofer_level(value)

@@ -34,8 +34,6 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
         | MediaPlayerEntityFeature.TURN_OFF
         | MediaPlayerEntityFeature.SELECT_SOURCE
         | MediaPlayerEntityFeature.SELECT_SOUND_MODE
-        | MediaPlayerEntityFeature.PLAY
-        | MediaPlayerEntityFeature.PAUSE
     )
     _attr_has_entity_name = True
     _attr_name = None
@@ -50,11 +48,13 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
     def state(self) -> MediaPlayerState:
         """State of the player."""
         if self.coordinator.data.powerstatus:
-            if self.coordinator.data.support_play_ctrl:
-                if self.coordinator.data.play_ctrl == 0:
+            match self.coordinator.data.play_ctrl:
+                case -1:
+                    return MediaPlayerState.ON
+                case 0:
                     return MediaPlayerState.PLAYING
-                return MediaPlayerState.PAUSED
-            return MediaPlayerState.ON
+                case 1:
+                    return MediaPlayerState.PAUSED
 
         return MediaPlayerState.OFF
 
@@ -72,6 +72,16 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
     def media_title(self) -> str | None:
         """Title of current playing media."""
         return self.coordinator.data.title
+
+    @property
+    def supported_features(self) -> MediaPlayerEntityFeature:
+        """Flag media player features that are supported."""
+        features = self._attr_supported_features
+        if self.coordinator.data.support_play_ctrl and self.coordinator.data.play_ctrl >= 0:
+            features |= MediaPlayerEntityFeature.PLAY
+            features |= MediaPlayerEntityFeature.PAUSE
+
+        return features
 
     @property
     def volume_level(self) -> float | None:

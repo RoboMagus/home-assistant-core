@@ -49,7 +49,7 @@ class LGSoundbarData:
 
     # Playback info
     support_play_ctrl: bool = False
-    play_ctrl: int = 0
+    play_ctrl: int = -1
     albumart: str|None = None
     artist: str|None = None
     title: str|None = None
@@ -208,8 +208,7 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 self.device_name = data["s_user_name"]
         elif response["msg"] == "PLAY_INFO":
             if not data:
-                current_state.support_play_ctrl = False
-                current_state.play_ctrl = 0
+                current_state.play_ctrl = -1
                 current_state.albumart = None
                 current_state.artist = None
                 current_state.title = None

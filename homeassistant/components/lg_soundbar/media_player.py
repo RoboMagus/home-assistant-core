@@ -27,7 +27,6 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
     """Representation of an LG soundbar device."""
 
     _attr_should_poll = False
-    _attr_state = MediaPlayerState.ON
     _attr_supported_features = (
         MediaPlayerEntityFeature.VOLUME_SET
         | MediaPlayerEntityFeature.VOLUME_MUTE
@@ -35,6 +34,8 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
         | MediaPlayerEntityFeature.TURN_OFF
         | MediaPlayerEntityFeature.SELECT_SOURCE
         | MediaPlayerEntityFeature.SELECT_SOUND_MODE
+        | MediaPlayerEntityFeature.PLAY
+        | MediaPlayerEntityFeature.PAUSE
     )
     _attr_has_entity_name = True
     _attr_name = None
@@ -49,9 +50,28 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
     def state(self) -> MediaPlayerState:
         """State of the player."""
         if self.coordinator.data.powerstatus:
+            if self.coordinator.data.support_play_ctrl:
+                if self.coordinator.data.play_ctrl == 0:
+                    return MediaPlayerState.PLAYING
+                return MediaPlayerState.PAUSED
             return MediaPlayerState.ON
 
         return MediaPlayerState.OFF
+
+    @property
+    def media_artist(self) -> str | None:
+        """Artist of current playing media, music track only."""
+        return self.coordinator.data.artist
+
+    @property
+    def media_image_url(self) -> str | None:
+        """Image url of current playing media."""
+        return self.coordinator.data.albumart
+
+    @property
+    def media_title(self) -> str | None:
+        """Title of current playing media."""
+        return self.coordinator.data.title
 
     @property
     def volume_level(self) -> float | None:
@@ -108,3 +128,11 @@ class LGDevice(LGSoundbarEntity, MediaPlayerEntity):
     def turn_off(self) -> None:
         """Turn the media player off."""
         self.coordinator.set_power(False)
+
+    def media_play(self) -> None:
+        """Send play command."""
+        self.coordinator.play_ctrl(False)
+
+    def media_pause(self) -> None:
+        """Send pause command."""
+        self.coordinator.play_ctrl(True)

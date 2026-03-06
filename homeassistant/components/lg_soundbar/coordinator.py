@@ -19,6 +19,7 @@ LOGGER = logging.getLogger(__name__)
 class LGSoundbarData:
     """LG Soundbar data."""
 
+    # Settings
     powerstatus: bool = False
     auto_volume: bool = False
     night_mode: bool = False
@@ -45,6 +46,13 @@ class LGSoundbarData:
     woofer_volume_max: int = 0
     bass: int = 0
     treble: int = 0
+
+    # Playback info
+    support_play_ctrl: bool = False
+    play_ctrl: int = 0
+    albumart: str|None = None
+    artist: str|None = None
+    title: str|None = None
 
     # processed values
     sound_mode: str|None = None
@@ -122,6 +130,7 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
         self._device.get_info()
         self._device.get_func()
         self._device.get_settings()
+        self._device.get_play()
 
     def handle_temescal_event(self, response) -> None:
         """Handle responses from the speakers."""
@@ -197,6 +206,23 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
                 current_state.back_light = data["i_back_light"]
             if "s_user_name" in data:
                 self.device_name = data["s_user_name"]
+        elif response["msg"] == "PLAY_INFO":
+            if not data:
+                current_state.support_play_ctrl = False
+                current_state.play_ctrl = 0
+                current_state.albumart = None
+                current_state.artist = None
+                current_state.title = None
+            if "b_support_play_ctrl" in data:
+                current_state.support_play_ctrl = data["b_support_play_ctrl"]
+            if "i_play_ctrl" in data:
+                current_state.play_ctrl = data["i_play_ctrl"]
+            if "s_albumart" in data:
+                current_state.albumart = data["s_albumart"]
+            if "s_artist" in data:
+                current_state.artist = data["s_artist"]
+            if "s_title" in data:
+                current_state.title = data["s_title"]
 
         LOGGER.debug("CurrentState: %r", current_state)
         self.hass.loop.call_soon_threadsafe(self.async_set_updated_data, current_state)
@@ -223,7 +249,7 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
 
     def set_mute(self, mute: bool) -> None:
         """Mute / Unmute."""
-        self._device.set_mute(mute),
+        self._device.set_mute(mute)
 
     def set_back_light(self, value: int) -> None:
         """Set backlight mode."""
@@ -267,3 +293,10 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
     def set_woofer_level(self, value: int) -> None:
         """Set woofer level."""
         self._device.set_woofer_level(value)
+
+    def play_ctrl(self, value: bool):
+        """Play / Pause control."""
+        if self.data.support_play_ctrl:
+            self._device.send_packet(
+                {"cmd": "set", "data": {"i_play_ctrl": int(value)}, "msg": "PLAY_INFO"}
+            )

@@ -49,6 +49,7 @@ class LGSoundbarData:
 
     # Playback info
     support_play_ctrl: bool = False
+    stream_type: int = 0
     play_ctrl: int = -1
     albumart: str|None = None
     artist: str|None = None
@@ -207,21 +208,29 @@ class LGSoundbarCoordinator(DataUpdateCoordinator[LGSoundbarData]):
             if "s_user_name" in data:
                 self.device_name = data["s_user_name"]
         elif response["msg"] == "PLAY_INFO":
-            if not data:
+            if not data :
                 current_state.play_ctrl = -1
                 current_state.albumart = None
                 current_state.artist = None
                 current_state.title = None
             if "b_support_play_ctrl" in data:
                 current_state.support_play_ctrl = data["b_support_play_ctrl"]
+            if "i_stream_type" in data:
+                current_state.stream_type = data["i_stream_type"]
+                if self.data.stream_type != current_state.stream_type:
+                    self._device.get_play()
+                if current_state.stream_type == 0:
+                    current_state.albumart = None
+                    current_state.artist = None
+                    current_state.title = None
             if "i_play_ctrl" in data:
                 current_state.play_ctrl = data["i_play_ctrl"]
             if "s_albumart" in data:
-                current_state.albumart = data["s_albumart"]
+                current_state.albumart = data["s_albumart"].strip() or None
             if "s_artist" in data:
-                current_state.artist = data["s_artist"]
+                current_state.artist = data["s_artist"].strip() or None
             if "s_title" in data:
-                current_state.title = data["s_title"]
+                current_state.title = data["s_title"].strip() or None
 
         LOGGER.debug("CurrentState: %r", current_state)
         self.hass.loop.call_soon_threadsafe(self.async_set_updated_data, current_state)
